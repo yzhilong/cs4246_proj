@@ -330,7 +330,7 @@ def evaluate(agent, agent_name, n_episodes=10):
     returns, _, hist = evaluate_policy(
         agent, env, n_eval_episodes=n_episodes, return_episode_rewards=True, crop_type=args.cultivar
     )
-    with open(f"{agent_name}_{args.mode}_history.pkl", 'wb') as f:
+    with open(f"{agent_name}_{args.mode}_{args.cultivar}_history.pkl", 'wb') as f:
         pickle.dump(hist, f)
 
 
