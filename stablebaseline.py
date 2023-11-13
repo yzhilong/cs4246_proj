@@ -9,6 +9,7 @@ from stable_baselines3 import PPO, A2C, DDPG, DQN, TD3, SAC, HER
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.monitor import Monitor
 import argparse
+import pickle
 
 parser = argparse.ArgumentParser(
     prog='train selected crops',
@@ -140,17 +141,17 @@ env = GymDssatWrapper(gym.make('GymDssatPdi-v0', **env_args))
 
 # Training arguments for PPO agent
 ppo_args = {
-    'gamma': 0.99,
-    'learning_rate': 0.0003,
+    'gamma': 1,
     'seed': 123,
 }
+
 # Create the agent
-ppo_agent = PPO('MlpPolicy', env, tensorboard_log="./ppo_tensorboard",  **ppo_args)
-a2c_agent = A2C('MlpPolicy', env, tensorboard_log="./a2c_tensorboard", **ppo_args)
-ddpg_agent = DDPG('MlpPolicy', env, tensorboard_log="./ddpg_tensorboard", **ppo_args)
+ppo_agent = PPO('MlpPolicy', env, **ppo_args)
+a2c_agent = A2C('MlpPolicy', env, **ppo_args)
+ddpg_agent = DDPG('MlpPolicy', env, **ppo_args)
 # dqn_agent = DQN('MlpPolicy', env, **ppo_args)
-td3_agent = TD3('MlpPolicy', env, tensorboard_log="./td3_tensorboard", **ppo_args)
-sac_agent = SAC('MlpPolicy', env, tensorboard_log="./sac_tensorboard",  **ppo_args)
+td3_agent = TD3('MlpPolicy', env, **ppo_args)
+sac_agent = SAC('MlpPolicy', env, **ppo_args)
 # her_agent = HER('MlpPolicy', env, **ppo_args)
 
 # Train for 400k timesteps
@@ -326,9 +327,15 @@ def evaluate(agent, agent_name, n_episodes=10):
     eval_args['seed'] += 1
 
     env = Monitor(GymDssatWrapper(gym.make('GymDssatPdi-v0', **eval_args)))
-    returns, _ = evaluate_policy(
+    returns, _, hist = evaluate_policy(
         agent, env, n_eval_episodes=n_episodes, return_episode_rewards=True, crop_type=args.cultivar
     )
+    with open(f"{agent_name}_{args.mode}_history.pkl", 'wb') as f:
+        pickle.dump(hist, f)
+
+
+    # if agent_name is not None:
+    #     save_env_history(env, agent_name)
     # returns, _, grain_weights = evaluate_policy(
     #     agent, env, n_eval_episodes=n_episodes, return_episode_rewards=True, crop_type=args.cultivar
     # )
@@ -352,6 +359,11 @@ def plot_results(labels, returns):
     plt.savefig(f'results_sb3_{args.cultivar}_{args.random_weather}_{args.mode}_{args.seed}.pdf')
     print(f"\nThe result is saved in the current working directory as 'results_sb3_{args.cultivar}_{args.random_weather}_{args.mode}_{args.seed}.pdf'\n")
     plt.show()
+
+def save_env_history(env, name):
+    obs = env.history['observation']
+    print(len(obs), type(obs))
+
 
 # evaluate agents
 null_agent = NullAgent(env)
