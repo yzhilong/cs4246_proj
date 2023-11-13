@@ -145,12 +145,12 @@ ppo_args = {
     'seed': 123,
 }
 # Create the agent
-ppo_agent = PPO('MlpPolicy', env, **ppo_args)
-a2c_agent = A2C('MlpPolicy', env, **ppo_args)
-ddpg_agent = DDPG('MlpPolicy', env, **ppo_args)
+ppo_agent = PPO('MlpPolicy', env, tensorboard_log="./ppo_tensorboard",  **ppo_args)
+a2c_agent = A2C('MlpPolicy', env, tensorboard_log="./a2c_tensorboard", **ppo_args)
+ddpg_agent = DDPG('MlpPolicy', env, tensorboard_log="./ddpg_tensorboard", **ppo_args)
 # dqn_agent = DQN('MlpPolicy', env, **ppo_args)
-td3_agent = TD3('MlpPolicy', env, **ppo_args)
-sac_agent = SAC('MlpPolicy', env, **ppo_args)
+td3_agent = TD3('MlpPolicy', env, tensorboard_log="./td3_tensorboard", **ppo_args)
+sac_agent = SAC('MlpPolicy', env, tensorboard_log="./sac_tensorboard",  **ppo_args)
 # her_agent = HER('MlpPolicy', env, **ppo_args)
 
 # Train for 400k timesteps
@@ -326,13 +326,15 @@ def evaluate(agent, agent_name, n_episodes=10):
     eval_args['seed'] += 1
 
     env = Monitor(GymDssatWrapper(gym.make('GymDssatPdi-v0', **eval_args)))
-
-    returns, _, grain_weights = evaluate_policy(
+    returns, _ = evaluate_policy(
         agent, env, n_eval_episodes=n_episodes, return_episode_rewards=True, crop_type=args.cultivar
     )
-    n = len(grain_weights)
-    with open(f"{args.cultivar}_{args.random_weather}_{args.mode}_{args.seed}_{agent_name}_grainweights.txt", 'w') as f:
-        f.write(str(grain_weights))
+    # returns, _, grain_weights = evaluate_policy(
+    #     agent, env, n_eval_episodes=n_episodes, return_episode_rewards=True, crop_type=args.cultivar
+    # )
+    # n = len(grain_weights)
+    # with open(f"{args.cultivar}_{args.random_weather}_{args.mode}_{args.seed}_{agent_name}_grainweights.txt", 'w') as f:
+    #     f.write(str(grain_weights))
     # grain_weights = pd.DataFrame({f"Eps{i}": grain_weights[i*n//10:(i+1)*n//10] for i in range(n_episodes)})
     # grain_weights.to_csv(f"{agent_name}_grainweights.csv", index=False)
 
